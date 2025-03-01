@@ -390,33 +390,135 @@ function group(array, keySelector, valueSelector) {
  *  For more examples see unit tests.
  */
 
+class Selector {
+  constructor(resultValue = '') {
+    this.resultValue = resultValue;
+  }
+
+  element(value) {
+    const regexp1 = /(?<=^)(\w+)(?=\.|#|::|:|$)/;
+    const regexp2 = /#|\.|\[|\]|:|::]/;
+    if (!this.resultValue.match(regexp1) && !this.resultValue.match(regexp2))
+      this.resultValue += value;
+    else {
+      if (this.resultValue.match(regexp1))
+        throw new Error(
+          'Element, id and pseudo-element should not occur more then one time inside the selector'
+        );
+      if (this.resultValue.match(regexp2))
+        throw new Error(
+          'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+        );
+    }
+    return this;
+  }
+
+  id(value) {
+    const regexp1 = /(?<=#)(.*)(?=\s|\.|#|$|::)/;
+    const regexp2 = /\.|\[|\]|:|::]/;
+    if (!this.resultValue.match(regexp1) && !this.resultValue.match(regexp2))
+      this.resultValue += `#${value}`;
+    else {
+      if (this.resultValue.match(regexp1))
+        throw new Error(
+          'Element, id and pseudo-element should not occur more then one time inside the selector'
+        );
+      if (this.resultValue.match(regexp2))
+        throw new Error(
+          'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+        );
+    }
+
+    return this;
+  }
+
+  class(value) {
+    const regexp1 = /\[|\]|:|::]/;
+    if (!this.resultValue.match(regexp1)) this.resultValue += `.${value}`;
+    else
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    return this;
+  }
+
+  attr(value) {
+    const regexp1 = /:|::]/;
+    if (!this.resultValue.match(regexp1)) this.resultValue += `[${value}]`;
+    else
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    return this;
+  }
+
+  pseudoClass(value) {
+    const regexp1 = /::/;
+    if (!this.resultValue.match(regexp1)) this.resultValue += `:${value}`;
+    else
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    return this;
+  }
+
+  pseudoElement(value) {
+    const regexp = /(?<=::)(.*)(?=\s|\.|#|$|::)/;
+    if (!this.resultValue.match(regexp)) this.resultValue += `::${value}`;
+    else
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    return this;
+  }
+
+  combine(selector1, combinator, selector2) {
+    this.resultValue += `${selector1.resultValue} ${combinator} ${selector2.resultValue}`;
+    return this;
+  }
+
+  stringify() {
+    return this.resultValue;
+  }
+}
+
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    const selector = new Selector();
+
+    return selector.element(value);
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    const selector = new Selector();
+
+    return selector.id(value);
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    const selector = new Selector();
+    return selector.class(value);
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    const selector = new Selector();
+    return selector.attr(value);
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    const selector = new Selector();
+    return selector.pseudoClass(value);
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    const selector = new Selector();
+
+    return selector.pseudoElement(value);
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    const selector = new Selector();
+    return selector.combine(selector1, combinator, selector2);
   },
 };
 
